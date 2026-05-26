@@ -297,12 +297,40 @@ async def deliver_subscription(message: types.Message, payment: Payment, db_sess
     
     # Parse payload
     try:
-        metadata = json.loads(payment.payload)
+        metadata = json.loads(payment.payload) if payment.payload else {}
     except Exception:
         metadata = {}
         
     renew_days = metadata.get("renew_days")
     subscription_id = metadata.get("subscription_id")
+    
+    # Check if this is a balance top-up (deposit) payment
+    is_deposit = False
+    try:
+        if not metadata.get("tariff_id") and not renew_days:
+            is_deposit = True
+    except Exception:
+        is_deposit = True
+        
+    if is_deposit:
+        user = await db_session.get(User, payment.user_id)
+        amount_rub = payment.amount_kopeks / 100.0
+        balance_rub = user.balance_kopeks / 100.0 if user else 0.0
+        
+        try:
+            await message.delete()
+        except Exception:
+            pass
+            
+        await message.answer(
+            f"✅ <b>Баланс успешно пополнен на {amount_rub} руб.!</b>\n\n"
+            f"Ваш текущий баланс: <b>{balance_rub} руб.</b>"
+            if lang == "ru" else
+            f"✅ <b>Balance successfully topped up by {amount_rub} RUB!</b>\n\n"
+            f"Your current balance: <b>{balance_rub} RUB</b>",
+            parse_mode="HTML"
+        )
+        return
     
     if renew_days and subscription_id:
         # Renewal flow
