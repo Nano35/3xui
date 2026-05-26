@@ -1,0 +1,54 @@
+# Environment variables (secrets)
+.env
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Databases
+data/
+*.db
+*.sqlite3
+
+# Python cache & build outputs
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Logging
+logs/
+*.log
+
+# Archives
+*.rar
+*.zip
+*.tar.gz
+*.7z
+
+# Local development test files
+scratch/
+errors.txt
+
+# API Docs & Documentation temp files
+*.html
