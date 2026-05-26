@@ -52,3 +52,4 @@ errors.txt
 
 # API Docs & Documentation temp files
 *.html
+!app/web/static/index.html

@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRZKY VPN Admin Control Panel</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: rgba(17, 25, 40, 0.75);
+            --bg-card: rgba(22, 33, 54, 0.45);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --glow-primary: rgba(139, 92, 246, 0.15);
+            --glow-blue: rgba(59, 130, 246, 0.15);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 10% 20%, var(--glow-primary) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, var(--glow-blue) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Ambient Glowing Background Grids */
+        .ambient-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.007) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.007) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Glassmorphism Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-btn.active {
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+        }
+
+        /* Container & Grid Layout */
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-pane {
+            display: none;
+        }
+
+        .section-pane.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            transition: var(--transition-smooth);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-val {
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .stat-icon.emerald {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+        }
+
+        .stat-icon.rose {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--accent-rose);
+        }
+
+        /* Tables & Content Cards */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(8px);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Buttons styling */
+        .btn-action {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white;
+            border: none;
+            padding: 0.65rem 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+        }
+
+        .btn-sec {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-sec:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Elegant Responsive Table */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1.2rem 1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: #e2e8f0;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-emerald);
+        }
+
+        .badge.expired {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent-rose);
+        }
+
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+        }
+
+        .badge.suspended {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+        }
+
+        /* Login Screen */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Modal windows */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 150;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            padding: 2.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-grid"></div>
+
+    <!-- Login screen overlay -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <div class="logo-icon" style="margin: 0 auto 1.5rem auto;">⚡</div>
+            <h2 style="margin-bottom: 0.5rem; font-weight: 700;">Mrzky VPN SaaS</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 2rem;">Авторизуйтесь в панели
+                управления администратора</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" required placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-action"
+                    style="width: 100%; justify-content: center; padding: 0.8rem;">Войти в систему</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App container -->
+    <div id="app-container" style="display: none;">
+        <header>
+            <div class="logo-container">
+                <div class="logo-icon">⚡</div>
+                <div class="logo-text">
+                    <h1>Mrzky VPN Panel</h1>
+                    <p>SaaS Billing & VPS Management</p>
+                </div>
+            </div>
+
+            <nav>
+                <button class="nav-btn active" onclick="switchTab('dashboard')">📈 Статистика</button>
+                <button class="nav-btn" onclick="switchTab('servers')">🌐 Серверы</button>
+                <button class="nav-btn" onclick="switchTab('subscriptions')">🔑 Подписки</button>
+                <button class="nav-btn" onclick="switchTab('users')">👥 Пользователи</button>
+                <button class="nav-btn" onclick="switchTab('tariffs')">🏷️ Тарифы</button>
+                <button class="nav-btn" onclick="switchTab('promocodes')">🎟️ Промокоды</button>
+                <button class="nav-btn" onclick="switchTab('import')">📥 Импорт</button>
+            </nav>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button class="btn-sec" onclick="clearInboundCache()" style="border-color: rgba(139, 92, 246, 0.4); color: #c084fc;">🧹 Сбросить кэш</button>
+                <button class="btn-sec" onclick="logout()">Выход</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Dashboard Pane -->
+            <div id="pane-dashboard" class="section-pane active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span>Всего пользователей</span>
+                            <div class="stat-icon purple">👥</div>
+                        </div>
+                        <div class="stat-val" id="stat-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span>Активные подписки</span>
+                            <div class="stat-icon blue">🔑</div>
+                        </div>
+                        <div class="stat-val" id="stat-subs">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span>Общая выручка</span>
+                            <div class="stat-icon emerald">💳</div>
+                        </div>
+                        <div class="stat-val" id="stat-rev">0 ₽</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span>Ожидают оплаты</span>
+                            <div class="stat-icon rose">⏳</div>
+                        </div>
+                        <div class="stat-val" id="stat-pending">0</div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">💵 Последние транзакции</h2>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID платежа</th>
+                                    <th>Пользователь</th>
+                                    <th>Сумма</th>
+                                    <th>Шлюз</th>
+                                    <th>Статус</th>
+                                    <th>Дата создания</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-transactions-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servers Pane -->
+            <div id="pane-servers" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">🌐 Список VPN серверов</h2>
+                        <button class="btn-action" onclick="openServerModal()">+ Добавить сервер</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Хост</th>
+                                    <th>Порт</th>
+                                    <th>Путь API</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-servers-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscriptions Pane -->
+            <div id="pane-subscriptions" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">🔑 Активные VPN ключи (подписки)</h2>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>User ID</th>
+                                    <th>Тариф</th>
+                                    <th>UUID</th>
+                                    <th>Email</th>
+                                    <th>Статус</th>
+                                    <th>Трафик</th>
+                                    <th>Действует до</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-subs-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Pane -->
+            <div id="pane-users" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">👥 Зарегистрированные пользователи</h2>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Telegram ID</th>
+                                    <th>Username</th>
+                                    <th>Имя</th>
+                                    <th>Баланс</th>
+                                    <th>Реф. код</th>
+                                    <th>Пригласитель ID</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-users-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Promocodes Pane -->
+            <div id="pane-promocodes" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">🎟️ Список промокодов</h2>
+                        <button class="btn-action" onclick="openPromoModal()">+ Создать промокод</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Код</th>
+                                    <th>Тип</th>
+                                    <th>Значение / Тариф</th>
+                                    <th>Дней подписки</th>
+                                    <th>Использований</th>
+                                    <th>Лимит</th>
+                                    <th>Активен</th>
+                                    <th>Действует до</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-promos-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import from 3x-ui Pane -->
+            <div id="pane-import" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">📥 Импорт клиентов из 3x-ui</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                                <label for="import-server">Сервер 3x-ui</label>
+                                <select id="import-server" style="width: 100%; background: #1e293b; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; color: white;">
+                                    <!-- Filled dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                                <label for="import-tariff">Тариф по умолчанию</label>
+                                <select id="import-tariff" style="width: 100%; background: #1e293b; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; color: white;">
+                                    <!-- Filled dynamically -->
+                                </select>
+                            </div>
+                            <button class="btn-action" onclick="loadImportPreview()" style="height: 44px;">🔍 Загрузить клиентов</button>
+                            <button class="btn-action" onclick="executeImport()" id="btn-execute-import" style="height: 44px; background: linear-gradient(135deg, var(--accent-emerald), #059669); display: none;">✅ Импортировать выбранных</button>
+                        </div>
+                        <div id="import-status" style="margin-bottom: 1rem; display: none;"></div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="import-select-all" onchange="toggleImportSelectAll(this)"></th>
+                                        <th>Email (3x-ui)</th>
+                                        <th>UUID</th>
+                                        <th>tgId (панель)</th>
+                                        <th>Telegram ID (ввод)</th>
+                                        <th>Статус</th>
+                                        <th>Трафик</th>
+                                        <th>Истекает</th>
+                                        <th>Inbound</th>
+                                        <th>Уже импортирован</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-import-body">
+                                    <tr><td colspan="10" style="text-align: center; color: var(--text-secondary);">Выберите сервер и нажмите «Загрузить клиентов»</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tariffs Pane -->
+            <div id="pane-tariffs" class="section-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2 class="card-title">🏷️ Управление тарифами</h2>
+                        <button class="btn-action" onclick="openTariffModal()">+ Добавить тариф</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название (RU)</th>
+                                    <th>Название (EN)</th>
+                                    <th>Срок (дней)</th>
+                                    <th>Трафик (ГБ)</th>
+                                    <th>Цена</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-tariffs-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Promocode Modal -->
+    <div id="promo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Создать Промокод</h3>
+                <button class="modal-close" onclick="closePromoModal()">&times;</button>
+            </div>
+            <form id="promo-form">
+                <div class="form-group">
+                    <label for="promo-code">Код промокода (в верхнем регистре)</label>
+                    <input type="text" id="promo-code" required placeholder="WELCOME300">
+                </div>
+                <div class="form-group">
+                    <label for="promo-type">Тип промокода</label>
+                    <select id="promo-type" onchange="togglePromoTypeFields()"
+                        style="width: 100%; background: #1e293b; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; color: white;">
+                        <option value="BALANCE">Баланс (Пополнение счета)</option>
+                        <option value="SUBSCRIPTION">Подписка (Выдача/продление)</option>
+                    </select>
+                </div>
+                
+                <!-- Balance Fields -->
+                <div class="form-group" id="promo-field-balance">
+                    <label for="promo-value">Сумма пополнения (рублей)</label>
+                    <input type="number" id="promo-value" value="100">
+                </div>
+                
+                <!-- Subscription Fields -->
+                <div class="form-group" id="promo-field-tariff" style="display: none;">
+                    <label for="promo-tariff">Тарифный план</label>
+                    <select id="promo-tariff"
+                        style="width: 100%; background: #1e293b; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; color: white;">
+                        <!-- Filled dynamically -->
+                    </select>
+                </div>
+                <div class="form-group" id="promo-field-duration" style="display: none;">
+                    <label for="promo-duration">Длительность подписки (дней)</label>
+                    <input type="number" id="promo-duration" value="30">
+                </div>
+                
+                <div class="form-group">
+                    <label for="promo-max-uses">Максимум использований</label>
+                    <input type="number" id="promo-max-uses" required value="1">
+                </div>
+                <div class="form-group">
+                    <label for="promo-expires">Срок действия промокода (гггг-мм-дд чч:мм:сс, необязательно)</label>
+                    <input type="text" id="promo-expires" placeholder="2026-12-31 23:59:59">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sec" onclick="closePromoModal()">Отмена</button>
+                    <button type="submit" class="btn-action">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Server Modal -->
+    <div id="server-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="server-modal-title">Добавить VPN Сервер</h3>
+                <button class="modal-close" onclick="closeServerModal()">&times;</button>
+            </div>
+            <form id="server-form">
+                <input type="hidden" id="server-id">
+                <div class="form-group">
+                    <label for="server-name">Название</label>
+                    <input type="text" id="server-name" required placeholder="Германия VLESS">
+                </div>
+                <div class="form-group">
+                    <label for="server-host">Хост (IP / Домен)</label>
+                    <input type="text" id="server-host" required placeholder="de.vpn.com">
+                </div>
+                <div class="form-group">
+                    <label for="server-port">Порт</label>
+                    <input type="number" id="server-port" required value="443">
+                </div>
+                <div class="form-group">
+                    <label for="server-base-path">Секретный путь API (из настроек 3x-ui)</label>
+                    <input type="text" id="server-base-path" value="/" placeholder="/secretpath/">
+                </div>
+                <div class="form-group">
+                    <label for="server-token">API Ключ (Bearer token) или Логин:Пароль</label>
+                    <input type="text" id="server-token" required placeholder="Токен доступа или admin:password">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sec" onclick="closeServerModal()">Отмена</button>
+                    <button type="submit" class="btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Subscription Modal -->
+    <div id="sub-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Редактировать подписку</h3>
+                <button class="modal-close" onclick="closeSubModal()">&times;</button>
+            </div>
+            <form id="sub-form">
+                <input type="hidden" id="sub-key">
+                <div class="form-group">
+                    <label for="sub-expires">Срок действия (дд.мм.гггг чч:мм)</label>
+                    <input type="text" id="sub-expires" placeholder="2026-12-31 23:59:59">
+                </div>
+                <div class="form-group">
+                    <label for="sub-limit">Лимит трафика (Гигабайт, 0 = Безлимит)</label>
+                    <input type="number" id="sub-limit" required value="100">
+                </div>
+                <div class="form-group">
+                    <label for="sub-status">Статус</label>
+                    <select id="sub-status"
+                        style="width: 100%; background: #1e293b; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; color: white;">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="EXPIRED">EXPIRED</option>
+                        <option value="SUSPENDED">SUSPENDED</option>
+                        <option value="DELETED">DELETED</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sec" onclick="closeSubModal()">Отмена</button>
+                    <button type="submit" class="btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Редактировать пользователя</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <form id="user-form">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label for="edit-user-username">Username</label>
+                    <input type="text" id="edit-user-username" placeholder="username">
+                </div>
+                <div class="form-group">
+                    <label for="edit-user-firstname">Имя</label>
+                    <input type="text" id="edit-user-firstname" placeholder="Имя">
+                </div>
+                <div class="form-group">
+                    <label for="edit-user-lastname">Фамилия</label>
+                    <input type="text" id="edit-user-lastname" placeholder="Фамилия">
+                </div>
+                <div class="form-group">
+                    <label for="edit-user-balance">Баланс (₽)</label>
+                    <input type="number" step="0.01" id="edit-user-balance" required value="0.00">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sec" onclick="closeUserModal()">Отмена</button>
+                    <button type="submit" class="btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tariff Modal -->
+    <div id="tariff-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="tariff-modal-title">Добавить Тарифный План</h3>
+                <button class="modal-close" onclick="closeTariffModal()">&times;</button>
+            </div>
+            <form id="tariff-form">
+                <input type="hidden" id="tariff-id">
+                <div class="form-group">
+                    <label for="tariff-name-ru">Название (RU)</label>
+                    <input type="text" id="tariff-name-ru" required placeholder="Стандартный 30 дней">
+                </div>
+                <div class="form-group">
+                    <label for="tariff-name-en">Название (EN)</label>
+                    <input type="text" id="tariff-name-en" required placeholder="Standard 30 Days">
+                </div>
+                <div class="form-group">
+                    <label for="tariff-duration">Срок действия (дней)</label>
+                    <input type="number" id="tariff-duration" required value="30">
+                </div>
+                <div class="form-group">
+                    <label for="tariff-traffic">Лимит трафика (ГБ, 0 = Безлимит)</label>
+                    <input type="number" id="tariff-traffic" required value="100">
+                </div>
+                <div class="form-group">
+                    <label for="tariff-price">Цена (₽)</label>
+                    <input type="number" step="0.01" id="tariff-price" required value="150.00">
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+                    <input type="checkbox" id="tariff-enabled" checked style="width: auto;">
+                    <label for="tariff-enabled" style="margin-bottom: 0;">Включен</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sec" onclick="closeTariffModal()">Отмена</button>
+                    <button type="submit" class="btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let adminAuth = {
+            username: '',
+            password: ''
+        };
+
+        // Helper to format ISO UTC string to local YYYY-MM-DD HH:MM:SS string
+        function toLocalString(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) return isoString;
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        // Helper to convert local YYYY-MM-DD HH:MM:SS string to ISO UTC string
+        function toISOString(localString) {
+            if (!localString) return null;
+            // Handle simple space-separated format
+            const formatted = localString.trim().replace(' ', 'T');
+            const date = new Date(formatted);
+            if (isNaN(date.getTime())) return null;
+            return date.toISOString();
+        }
+
+        async function clearInboundCache() {
+            if (confirm("Вы действительно хотите принудительно сбросить кэш входящих подключений на всех серверах?")) {
+                try {
+                    const res = await def_fetch('/api/admin/cache/clear', { method: 'POST' });
+                    if (res.ok) {
+                        alert("Кэш успешно сброшен!");
+                    } else {
+                        alert("Не удалось сбросить кэш.");
+                    }
+                } catch (e) {
+                    console.error("Failed to clear cache:", e);
+                    alert("Сетевая ошибка при сбросе кэша: " + e.message);
+                }
+            }
+        }
+
+        // On DOMContentLoaded check if session is already active in localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('mrzky_admin_auth');
+            if (stored) {
+                try {
+                    const session = JSON.parse(stored);
+                    if (new Date().getTime() < session.expiresAt) {
+                        adminAuth.username = session.username;
+                        adminAuth.password = session.password;
+                        hideLoginOverlay();
+                        loadStats();
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse stored session", e);
+                }
+            }
+            showLoginOverlay();
+        });
+
+        // Switch panel tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section-pane').forEach(pane => pane.classList.remove('active'));
+
+            // Safely get the active button
+            let activeBtn = null;
+            if (typeof window.event !== 'undefined' && window.event && window.event.currentTarget) {
+                activeBtn = window.event.currentTarget;
+            } else if (typeof window.event !== 'undefined' && window.event && window.event.target) {
+                activeBtn = window.event.target.closest('.nav-btn');
+            }
+            if (!activeBtn) {
+                const buttons = document.querySelectorAll('.nav-btn');
+                for (let btn of buttons) {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tabName}'`)) {
+                        activeBtn = btn;
+                        break;
+                    }
+                }
+            }
+
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            document.getElementById(`pane-${tabName}`).classList.add('active');
+
+            // Reload relevant tab data
+            if (tabName === 'dashboard') loadStats();
+            if (tabName === 'servers') loadServers();
+            if (tabName === 'subscriptions') loadSubscriptions();
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'tariffs') loadTariffs();
+            if (tabName === 'promocodes') loadPromocodes();
+            if (tabName === 'import') loadImportTab();
+        }
+
+        // HTTP request wrapper with Auth header
+        async function def_fetch(url, options = {}) {
+            if (!options.headers) {
+                options.headers = {};
+            }
+            const credentials = btoa(`${adminAuth.username}:${adminAuth.password}`);
+            options.headers['Authorization'] = `Basic ${credentials}`;
+
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+                logout();
+                throw new Error("Unauthorized");
+            }
+
+            // Extend session on successful request
+            if (response.ok && adminAuth.username && adminAuth.password) {
+                const expiresAt = new Date().getTime() + 60 * 60 * 1000; // 60 minutes
+                localStorage.setItem('mrzky_admin_auth', JSON.stringify({
+                    username: adminAuth.username,
+                    password: adminAuth.password,
+                    expiresAt: expiresAt
+                }));
+            }
+
+            return response;
+        }
+
+        // Login Submit
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            adminAuth.username = document.getElementById('username').value;
+            adminAuth.password = document.getElementById('password').value;
+
+            try {
+                const res = await def_fetch('/api/admin/stats');
+                if (res.ok) {
+                    hideLoginOverlay();
+                    loadStats();
+                } else {
+                    alert("Неверное имя пользователя или пароль.");
+                    logout();
+                }
+            } catch (err) {
+                console.error("Login failed:", err);
+                logout();
+            }
+        });
+
+        function showLoginOverlay() {
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+        }
+
+        function hideLoginOverlay() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+        }
+
+        function logout() {
+            adminAuth.username = '';
+            adminAuth.password = '';
+            localStorage.removeItem('mrzky_admin_auth');
+            showLoginOverlay();
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const res = await def_fetch('/api/admin/stats');
+                const data = await res.json();
+
+                document.getElementById('stat-users').innerText = data.stats.total_users;
+                document.getElementById('stat-subs').innerText = data.stats.total_subscriptions;
+                document.getElementById('stat-rev').innerText = `${data.stats.total_revenue.toFixed(2)} ₽`;
+                document.getElementById('stat-pending').innerText = data.stats.pending_payments;
+
+                const tableBody = document.getElementById('table-transactions-body');
+                tableBody.innerHTML = '';
+
+                data.recent_payments.forEach(p => {
+                    const statusClass = p.status === 'COMPLETED' ? 'active' : (p.status === 'PENDING' ? 'pending' : 'expired');
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><code>${p.id}</code></td>
+                            <td><code>${p.user_id}</code></td>
+                            <td><b>${p.amount.toFixed(2)} ₽</b></td>
+                            <td>${p.gateway}</td>
+                            <td><span class="badge ${statusClass}">${p.status}</span></td>
+                            <td>${toLocalString(p.created_at)}</td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load stats", e);
+            }
+        }
+
+        // Load servers
+        async function loadServers() {
+            try {
+                const res = await def_fetch('/api/admin/servers');
+                const servers = await res.json();
+
+                const tableBody = document.getElementById('table-servers-body');
+                tableBody.innerHTML = '';
+
+                servers.forEach(s => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${s.id}</td>
+                            <td><b>${s.name}</b></td>
+                            <td><code>${s.host}</code></td>
+                            <td>${s.port}</td>
+                            <td><code>${s.base_path}</code></td>
+                            <td><span class="badge ${s.is_enabled ? 'active' : 'expired'}">${s.status}</span></td>
+                            <td>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editServer(${s.id}, '${s.name}', '${s.host}', ${s.port}, '${s.base_path}', '${s.api_token}', ${s.is_enabled})">Ред.</button>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deleteServer(${s.id})">Удал.</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load servers", e);
+            }
+        }
+
+        // Load subscriptions
+        async function loadSubscriptions() {
+            try {
+                const res = await def_fetch('/api/admin/subscriptions');
+                const subs = await res.json();
+
+                const tableBody = document.getElementById('table-subs-body');
+                tableBody.innerHTML = '';
+
+                subs.forEach(s => {
+                    const statusClass = s.status === 'ACTIVE' ? 'active' : (s.status === 'EXPIRED' ? 'expired' : 'suspended');
+                    const usedGb = (s.total_used_bytes / (1024 ** 3)).toFixed(2);
+                    const limitGb = s.traffic_limit_bytes > 0 ? (s.traffic_limit_bytes / (1024 ** 3)).toFixed(0) : 'Безлимит';
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><code>${s.sub_id}</code></td>
+                            <td><code>${s.user_id}</code></td>
+                            <td>${s.tariff_id}</td>
+                            <td><small><code>${s.client_uuid}</code></small></td>
+                            <td><code>${s.client_email}</code></td>
+                            <td><span class="badge ${statusClass}">${s.status}</span></td>
+                            <td><b>${usedGb} / ${limitGb} GB</b></td>
+                            <td>${s.expires_at ? toLocalString(s.expires_at) : 'Безлимит'}</td>
+                            <td>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openSubModal('${s.sub_id}', '${s.expires_at || ''}', ${s.traffic_limit_bytes}, '${s.status}')">Ред.</button>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deleteSub('${s.sub_id}')">Удал.</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load subscriptions", e);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const res = await def_fetch('/api/admin/users');
+                const users = await res.json();
+
+                const tableBody = document.getElementById('table-users-body');
+                tableBody.innerHTML = '';
+
+                users.forEach(u => {
+                    const balance = (u.balance_kopeks / 100).toFixed(2);
+                    // Safe string escaping for click parameters
+                    const usernameEsc = (u.username || '').replace(/'/g, "\\'");
+                    const firstEsc = (u.first_name || '').replace(/'/g, "\\'");
+                    const lastEsc = (u.last_name || '').replace(/'/g, "\\'");
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><code>${u.id}</code></td>
+                            <td>@${u.username || '-'}</td>
+                            <td>${u.first_name || '-'} ${u.last_name || ''}</td>
+                            <td><b>${balance} ₽</b></td>
+                            <td><code>${u.referral_code}</code></td>
+                            <td><code>${u.referred_by_id || '-'}</code></td>
+                            <td>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openUserModal(${u.id}, '${usernameEsc}', '${firstEsc}', '${lastEsc}', ${balance})">Ред.</button>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deleteUser(${u.id})">Удал.</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load users", e);
+            }
+        }
+
+        // Server Modal actions
+        function openServerModal() {
+            document.getElementById('server-modal-title').innerText = 'Добавить VPN Сервер';
+            document.getElementById('server-id').value = '';
+            document.getElementById('server-name').value = '';
+            document.getElementById('server-host').value = '';
+            document.getElementById('server-port').value = '443';
+            document.getElementById('server-base-path').value = '/';
+            document.getElementById('server-token').value = '';
+            document.getElementById('server-modal').style.display = 'flex';
+        }
+
+        function closeServerModal() {
+            document.getElementById('server-modal').style.display = 'none';
+        }
+
+        function editServer(id, name, host, port, basePath, apiToken, isEnabled) {
+            document.getElementById('server-modal-title').innerText = 'Редактировать VPN Сервер';
+            document.getElementById('server-id').value = id;
+            document.getElementById('server-name').value = name;
+            document.getElementById('server-host').value = host;
+            document.getElementById('server-port').value = port;
+            document.getElementById('server-base-path').value = basePath;
+            document.getElementById('server-token').value = apiToken;
+            document.getElementById('server-modal').style.display = 'flex';
+        }
+
+        document.getElementById('server-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('server-id').value;
+            const payload = {
+                name: document.getElementById('server-name').value,
+                host: document.getElementById('server-host').value,
+                port: parseInt(document.getElementById('server-port').value),
+                base_path: document.getElementById('server-base-path').value,
+                api_token: document.getElementById('server-token').value,
+                is_enabled: true
+            };
+
+            const url = id ? `/api/admin/servers/${id}` : '/api/admin/servers';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await def_fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeServerModal();
+                    loadServers();
+                }
+            } catch (err) {
+                console.error("Failed to save server:", err);
+            }
+        });
+
+        async function deleteServer(id) {
+            if (confirm("Вы действительно хотите удалить этот сервер?")) {
+                try {
+                    const res = await def_fetch(`/api/admin/servers/${id}`, { method: 'DELETE' });
+                    if (res.ok) loadServers();
+                } catch (e) {
+                    console.error("Failed to delete server:", e);
+                }
+            }
+        }
+
+        // Sub Modal actions
+        function openSubModal(key, expires, limit, status) {
+            document.getElementById('sub-key').value = key;
+            document.getElementById('sub-expires').value = toLocalString(expires);
+            document.getElementById('sub-limit').value = limit / (1024 ** 3);
+            document.getElementById('sub-status').value = status;
+            document.getElementById('sub-modal').style.display = 'flex';
+        }
+
+        function closeSubModal() {
+            document.getElementById('sub-modal').style.display = 'none';
+        }
+
+        document.getElementById('sub-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('sub-key').value;
+            const expVal = document.getElementById('sub-expires').value;
+            const limitGb = parseInt(document.getElementById('sub-limit').value);
+
+            const payload = {
+                expires_at: toISOString(expVal),
+                traffic_limit_bytes: limitGb * 1024 * 1024 * 1024,
+                status: document.getElementById('sub-status').value
+            };
+
+            try {
+                const res = await def_fetch(`/api/admin/subscriptions/${key}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeSubModal();
+                    loadSubscriptions();
+                }
+            } catch (err) {
+                console.error("Failed to save subscription:", err);
+            }
+        });
+
+        async function deleteSub(key) {
+            if (confirm("Вы действительно хотите удалить (деактивировать) эту подписку?")) {
+                try {
+                    const res = await def_fetch(`/api/admin/subscriptions/${key}`, { method: 'DELETE' });
+                    if (res.ok) loadSubscriptions();
+                } catch (e) {
+                    console.error("Failed to delete subscription:", e);
+                }
+            }
+        }
+
+        // User Modal actions
+        function openUserModal(id, username, firstName, lastName, balance) {
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-user-username').value = username;
+            document.getElementById('edit-user-firstname').value = firstName;
+            document.getElementById('edit-user-lastname').value = lastName;
+            document.getElementById('edit-user-balance').value = balance;
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+        }
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-user-id').value;
+            const balanceRub = parseFloat(document.getElementById('edit-user-balance').value);
+
+            const payload = {
+                username: document.getElementById('edit-user-username').value || null,
+                first_name: document.getElementById('edit-user-firstname').value || null,
+                last_name: document.getElementById('edit-user-lastname').value || null,
+                balance_kopeks: Math.round(balanceRub * 100)
+            };
+
+            try {
+                const res = await def_fetch(`/api/admin/users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeUserModal();
+                    loadUsers();
+                }
+            } catch (err) {
+                console.error("Failed to save user:", err);
+            }
+        });
+
+        async function deleteUser(id) {
+            if (confirm("Вы действительно хотите удалить этого пользователя и все его подписки с серверов?")) {
+                try {
+                    const res = await def_fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                    if (res.ok) loadUsers();
+                } catch (e) {
+                    console.error("Failed to delete user:", e);
+                }
+            }
+        }
+
+        // Tariff actions
+        async function loadTariffs() {
+            try {
+                const res = await def_fetch('/api/admin/tariffs');
+                const tariffs = await res.json();
+
+                const tableBody = document.getElementById('table-tariffs-body');
+                tableBody.innerHTML = '';
+
+                tariffs.forEach(t => {
+                    const price = (t.price_kopeks / 100).toFixed(2);
+                    const traffic = t.traffic_limit_gb > 0 ? `${t.traffic_limit_gb} ГБ` : 'Безлимит';
+                    const activeClass = t.is_enabled ? 'active' : 'expired';
+                    const activeText = t.is_enabled ? 'Активен' : 'Отключен';
+
+                    // Escape strings for onclick arguments
+                    const nameRuEsc = (t.name_ru || '').replace(/'/g, "\\'");
+                    const nameEnEsc = (t.name_en || '').replace(/'/g, "\\'");
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${t.id}</td>
+                            <td><b>${t.name_ru}</b></td>
+                            <td>${t.name_en}</td>
+                            <td>${t.duration_days} дн.</td>
+                            <td><b>${traffic}</b></td>
+                            <td><b>${price} ₽</b></td>
+                            <td><span class="badge ${activeClass}">${activeText}</span></td>
+                            <td>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editTariff(${t.id}, '${nameRuEsc}', '${nameEnEsc}', ${t.duration_days}, ${t.traffic_limit_gb}, ${price}, ${t.is_enabled})">Ред.</button>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deleteTariff(${t.id})">Удал.</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load tariffs", e);
+            }
+        }
+
+        function openTariffModal() {
+            document.getElementById('tariff-modal-title').innerText = 'Добавить Тарифный План';
+            document.getElementById('tariff-id').value = '';
+            document.getElementById('tariff-name-ru').value = '';
+            document.getElementById('tariff-name-en').value = '';
+            document.getElementById('tariff-duration').value = '30';
+            document.getElementById('tariff-traffic').value = '100';
+            document.getElementById('tariff-price').value = '150.00';
+            document.getElementById('tariff-enabled').checked = true;
+            document.getElementById('tariff-modal').style.display = 'flex';
+        }
+
+        function closeTariffModal() {
+            document.getElementById('tariff-modal').style.display = 'none';
+        }
+
+        function editTariff(id, nameRu, nameEn, duration, traffic, price, isEnabled) {
+            document.getElementById('tariff-modal-title').innerText = 'Редактировать Тарифный План';
+            document.getElementById('tariff-id').value = id;
+            document.getElementById('tariff-name-ru').value = nameRu;
+            document.getElementById('tariff-name-en').value = nameEn;
+            document.getElementById('tariff-duration').value = duration;
+            document.getElementById('tariff-traffic').value = traffic;
+            document.getElementById('tariff-price').value = price;
+            document.getElementById('tariff-enabled').checked = isEnabled;
+            document.getElementById('tariff-modal').style.display = 'flex';
+        }
+
+        document.getElementById('tariff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('tariff-id').value;
+            const priceRub = parseFloat(document.getElementById('tariff-price').value);
+
+            const payload = {
+                name_ru: document.getElementById('tariff-name-ru').value,
+                name_en: document.getElementById('tariff-name-en').value,
+                duration_days: parseInt(document.getElementById('tariff-duration').value),
+                traffic_limit_gb: parseInt(document.getElementById('tariff-traffic').value),
+                price_kopeks: Math.round(priceRub * 100),
+                is_enabled: document.getElementById('tariff-enabled').checked
+            };
+
+            const url = id ? `/api/admin/tariffs/${id}` : '/api/admin/tariffs';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await def_fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeTariffModal();
+                    loadTariffs();
+                }
+            } catch (err) {
+                console.error("Failed to save tariff:", err);
+            }
+        });
+
+        async function deleteTariff(id) {
+            if (confirm("Вы действительно хотите удалить этот тариф?")) {
+                try {
+                    const res = await def_fetch(`/api/admin/tariffs/${id}`, { method: 'DELETE' });
+                    if (res.ok) loadTariffs();
+                } catch (e) {
+                    console.error("Failed to delete tariff:", e);
+                }
+            }
+        }
+
+        // Promocode actions
+        let tariffsCached = [];
+
+        async function loadPromocodes() {
+            try {
+                if (tariffsCached.length === 0) {
+                    const tRes = await def_fetch('/api/admin/tariffs');
+                    if (tRes.ok) tariffsCached = await tRes.json();
+                }
+
+                const res = await def_fetch('/api/admin/promocodes');
+                const promos = await res.json();
+
+                const tableBody = document.getElementById('table-promos-body');
+                tableBody.innerHTML = '';
+
+                promos.forEach(p => {
+                    let typeLabel = p.type === 'BALANCE' ? '💰 Баланс' : '🎫 Подписка';
+                    let valLabel = '';
+                    if (p.type === 'BALANCE') {
+                        valLabel = `${(p.value_kopeks / 100).toFixed(2)} ₽`;
+                    } else {
+                        const tariff = tariffsCached.find(t => t.id === p.tariff_id);
+                        const tName = tariff ? tariff.name_ru : `ID ${p.tariff_id}`;
+                        valLabel = `Тариф: ${tName}`;
+                    }
+
+                    const activeClass = p.is_active ? 'active' : 'expired';
+                    const activeText = p.is_active ? 'Да' : 'Нет';
+
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${p.id}</td>
+                            <td><b><code>${p.code}</code></b></td>
+                            <td>${typeLabel}</td>
+                            <td>${valLabel}</td>
+                            <td>${p.type === 'SUBSCRIPTION' ? p.duration_days : '-'}</td>
+                            <td><b>${p.uses_count}</b></td>
+                            <td>${p.max_uses}</td>
+                            <td><span class="badge ${activeClass}">${activeText}</span></td>
+                            <td>${p.expires_at ? new Date(p.expires_at).toLocaleString() : '∞'}</td>
+                            <td>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deletePromo(${p.id})">Удал.</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Failed to load promocodes", e);
+            }
+        }
+
+        function togglePromoTypeFields() {
+            const type = document.getElementById('promo-type').value;
+            if (type === 'BALANCE') {
+                document.getElementById('promo-field-balance').style.display = 'block';
+                document.getElementById('promo-field-tariff').style.display = 'none';
+                document.getElementById('promo-field-duration').style.display = 'none';
+            } else {
+                document.getElementById('promo-field-balance').style.display = 'none';
+                document.getElementById('promo-field-tariff').style.display = 'block';
+                document.getElementById('promo-field-duration').style.display = 'block';
+            }
+        }
+
+        async function openPromoModal() {
+            document.getElementById('promo-code').value = '';
+            document.getElementById('promo-type').value = 'BALANCE';
+            document.getElementById('promo-value').value = '100';
+            document.getElementById('promo-duration').value = '30';
+            document.getElementById('promo-max-uses').value = '1';
+            document.getElementById('promo-expires').value = '';
+            
+            togglePromoTypeFields();
+
+            try {
+                const tRes = await def_fetch('/api/admin/tariffs');
+                if (tRes.ok) tariffsCached = await tRes.json();
+                
+                const select = document.getElementById('promo-tariff');
+                select.innerHTML = '';
+                tariffsCached.forEach(t => {
+                    select.innerHTML += `<option value="${t.id}">${t.name_ru} (${t.duration_days} дней)</option>`;
+                });
+            } catch (e) {
+                console.error(e);
+            }
+
+            document.getElementById('promo-modal').style.display = 'flex';
+        }
+
+        function closePromoModal() {
+            document.getElementById('promo-modal').style.display = 'none';
+        }
+
+        document.getElementById('promo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('promo-type').value;
+            const expiresVal = document.getElementById('promo-expires').value;
+            
+            const payload = {
+                code: document.getElementById('promo-code').value.toUpperCase(),
+                type: type,
+                value_kopeks: type === 'BALANCE' ? Math.round(parseFloat(document.getElementById('promo-value').value) * 100) : 0,
+                tariff_id: type === 'SUBSCRIPTION' ? parseInt(document.getElementById('promo-tariff').value) : null,
+                duration_days: type === 'SUBSCRIPTION' ? parseInt(document.getElementById('promo-duration').value) : 0,
+                max_uses: parseInt(document.getElementById('promo-max-uses').value),
+                expires_at: expiresVal ? new Date(expiresVal).toISOString() : null
+            };
+
+            try {
+                const res = await def_fetch('/api/admin/promocodes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closePromoModal();
+                    loadPromocodes();
+                } else {
+                    const data = await res.json();
+                    alert("Ошибка: " + (data.detail || "не удалось создать промокод"));
+                }
+            } catch (err) {
+                console.error("Failed to create promo:", err);
+            }
+        });
+
+        async function deletePromo(id) {
+            if (confirm("Вы действительно хотите удалить этот промокод?")) {
+                try {
+                    const res = await def_fetch(`/api/admin/promocodes/${id}`, { method: 'DELETE' });
+                    if (res.ok) loadPromocodes();
+                } catch (e) {
+                    console.error("Failed to delete promo:", e);
+                }
+            }
+        }
+
+        // ─── Import from 3x-ui ───────────────────────────────
+        let importClientsData = [];
+
+        async function loadImportTab() {
+            // Load servers into dropdown
+            try {
+                const sRes = await def_fetch('/api/admin/servers');
+                const servers = await sRes.json();
+                const sel = document.getElementById('import-server');
+                sel.innerHTML = '';
+                servers.forEach(s => {
+                    sel.innerHTML += `<option value="${s.id}">${s.name} (${s.host}:${s.port})</option>`;
+                });
+            } catch (e) { console.error(e); }
+
+            // Load tariffs into dropdown
+            try {
+                const tRes = await def_fetch('/api/admin/tariffs');
+                const tariffs = await tRes.json();
+                const sel = document.getElementById('import-tariff');
+                sel.innerHTML = '';
+                tariffs.forEach(t => {
+                    sel.innerHTML += `<option value="${t.id}">${t.name_ru} (${t.duration_days} дней, ${(t.price_kopeks/100).toFixed(0)}₽)</option>`;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadImportPreview() {
+            const serverId = document.getElementById('import-server').value;
+            if (!serverId) { alert('Выберите сервер'); return; }
+
+            const statusEl = document.getElementById('import-status');
+            statusEl.style.display = 'block';
+            statusEl.innerHTML = '<span style="color: var(--accent-amber);">⏳ Загрузка клиентов из 3x-ui...</span>';
+
+            try {
+                const res = await def_fetch(`/api/admin/import/preview/${serverId}`);
+                if (!res.ok) {
+                    const err = await res.json();
+                    statusEl.innerHTML = `<span style="color: var(--accent-rose);">❌ Ошибка: ${err.detail || 'Не удалось загрузить'}</span>`;
+                    return;
+                }
+                importClientsData = await res.json();
+
+                const tableBody = document.getElementById('table-import-body');
+                tableBody.innerHTML = '';
+
+                if (importClientsData.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary);">На этом сервере нет клиентов</td></tr>';
+                    statusEl.innerHTML = `<span style="color: var(--text-secondary);">Клиентов не найдено.</span>`;
+                    document.getElementById('btn-execute-import').style.display = 'none';
+                    return;
+                }
+
+                importClientsData.forEach((c, idx) => {
+                    const enableBadge = c.enable ? '<span class="badge active">ON</span>' : '<span class="badge expired">OFF</span>';
+                    const importedBadge = c.already_imported ? '<span class="badge active">✔ Да</span>' : '<span class="badge pending">Нет</span>';
+                    const trafficStr = c.traffic_limit_bytes > 0 ? `${c.used_gb} / ${c.traffic_limit_gb} GB` : `${c.used_gb} GB / ∞`;
+                    const tgIdDisplay = c.tgId || '<span style="color: var(--text-secondary);">—</span>';
+                    const defaultTgId = c.tgId || '';
+                    const isDisabled = c.already_imported ? 'disabled' : '';
+                    const isChecked = !c.already_imported && c.tgId ? 'checked' : '';
+
+                    tableBody.innerHTML += `
+                        <tr style="${c.already_imported ? 'opacity: 0.5;' : ''}">
+                            <td><input type="checkbox" class="import-check" data-idx="${idx}" ${isChecked} ${isDisabled}></td>
+                            <td><code style="font-size: 0.8rem;">${c.email}</code></td>
+                            <td><code style="font-size: 0.7rem;">${c.uuid.substring(0, 8)}...</code></td>
+                            <td>${tgIdDisplay}</td>
+                            <td><input type="number" class="import-tgid" data-idx="${idx}" value="${defaultTgId}" ${isDisabled} placeholder="Telegram ID" style="width: 140px; background: #1e293b; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.4rem 0.6rem; color: white; font-size: 0.85rem;"></td>
+                            <td>${enableBadge}</td>
+                            <td>${trafficStr}</td>
+                            <td>${c.expires_at_str === 'Unlimited' ? 'Безлимит' : toLocalString(c.expires_at_str)}</td>
+                            <td><code style="font-size: 0.75rem;">${c.inbound_remark || c.inbound_id}</code></td>
+                            <td>${importedBadge}</td>
+                        </tr>
+                    `;
+                });
+
+                const notImported = importClientsData.filter(c => !c.already_imported).length;
+                const withTgId = importClientsData.filter(c => !c.already_imported && c.tgId).length;
+                statusEl.innerHTML = `<span style="color: var(--accent-emerald);">✅ Найдено <b>${importClientsData.length}</b> клиентов. Новых: <b>${notImported}</b>. С tgId: <b>${withTgId}</b>.</span>`;
+                document.getElementById('btn-execute-import').style.display = notImported > 0 ? 'inline-flex' : 'none';
+
+            } catch (e) {
+                console.error(e);
+                statusEl.innerHTML = `<span style="color: var(--accent-rose);">❌ Сетевая ошибка: ${e.message}</span>`;
+            }
+        }
+
+        function toggleImportSelectAll(el) {
+            document.querySelectorAll('.import-check:not(:disabled)').forEach(cb => cb.checked = el.checked);
+        }
+
+        async function executeImport() {
+            const serverId = document.getElementById('import-server').value;
+            const tariffId = document.getElementById('import-tariff').value;
+            if (!serverId || !tariffId) { alert('Выберите сервер и тариф'); return; }
+
+            const mappings = [];
+            document.querySelectorAll('.import-check:checked').forEach(cb => {
+                const idx = parseInt(cb.dataset.idx);
+                const tgIdInput = document.querySelector(`.import-tgid[data-idx="${idx}"]`);
+                const tgId = tgIdInput ? tgIdInput.value.trim() : '';
+                const client = importClientsData[idx];
+
+                if (client && tgId && !client.already_imported) {
+                    mappings.push({ email: client.email, telegram_id: parseInt(tgId) });
+                }
+            });
+
+            if (mappings.length === 0) {
+                alert('Не выбрано ни одного клиента с заполненным Telegram ID.');
+                return;
+            }
+
+            if (!confirm(`Импортировать ${mappings.length} клиентов?`)) return;
+
+            const statusEl = document.getElementById('import-status');
+            statusEl.innerHTML = '<span style="color: var(--accent-amber);">⏳ Импорт выполняется...</span>';
+
+            try {
+                const res = await def_fetch('/api/admin/import/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        server_id: parseInt(serverId),
+                        default_tariff_id: parseInt(tariffId),
+                        mappings: mappings
+                    })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    let msg = `✅ Импортировано: <b>${result.imported}</b>, пропущено: <b>${result.skipped}</b>, ошибок: <b>${result.errors}</b>.`;
+                    if (result.error_details && result.error_details.length > 0) {
+                        msg += '<br><small style="color: var(--accent-rose);">' + result.error_details.join('<br>') + '</small>';
+                    }
+                    statusEl.innerHTML = `<span style="color: var(--accent-emerald);">${msg}</span>`;
+                    // Reload preview to update "already imported" badges
+                    setTimeout(() => loadImportPreview(), 1500);
+                } else {
+                    statusEl.innerHTML = `<span style="color: var(--accent-rose);">❌ Ошибка: ${result.detail || 'Неизвестная ошибка'}</span>`;
+                }
+            } catch (e) {
+                console.error(e);
+                statusEl.innerHTML = `<span style="color: var(--accent-rose);">❌ Сетевая ошибка: ${e.message}</span>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
