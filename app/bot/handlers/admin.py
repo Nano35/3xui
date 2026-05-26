@@ -33,7 +33,7 @@ async def admin_menu_handler(message: types.Message, db_session: AsyncSession):
         select(func.sum(Payment.amount_kopeks)).where(Payment.status == PaymentStatus.COMPLETED)
     )
     total_rev_kopeks = total_rev_query.scalar() or 0
-    total_rev = total_rev_kopeks / 100.0
+    total_rev = float(total_rev_kopeks) / 100.0
     
     stats_text = (
         "⚙️ <b>Панель управления администратора</b>\n\n"

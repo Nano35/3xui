@@ -488,7 +488,7 @@ async def profile_partner(callback: types.CallbackQuery, user: User, db_session:
         select(func.sum(ReferralReward.amount_kopeks)).where(ReferralReward.referrer_id == user.id)
     )
     earned_kopeks = earned_query.scalar() or 0
-    earned_rub = earned_kopeks / 100.0
+    earned_rub = float(earned_kopeks) / 100.0
     
     percent = settings.REFERRAL_PERCENT
     text = msgs["partner_desc"].format(

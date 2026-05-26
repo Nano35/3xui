@@ -92,7 +92,7 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
         select(func.sum(Payment.amount_kopeks)).where(Payment.status == PaymentStatus.COMPLETED)
     )
     total_revenue_kopeks = total_revenue_query.scalar() or 0
-    total_revenue = total_revenue_kopeks / 100.0
+    total_revenue = float(total_revenue_kopeks) / 100.0
 
     pending_payments_query = await db.execute(
         select(func.count(Payment.id)).where(Payment.status == PaymentStatus.PENDING)
