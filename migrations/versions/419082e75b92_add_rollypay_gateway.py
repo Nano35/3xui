@@ -24,8 +24,16 @@ def upgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
         # Alter the enum type in PostgreSQL
-        with op.get_context().autocommit_block():
-            op.execute("ALTER TYPE paymentgateway ADD VALUE 'ROLLYPAY'")
+        # Check if ROLLYPAY already exists in paymentgateway enum to prevent DuplicateObjectError on retries
+        check_query = sa.text(
+            "SELECT 1 FROM pg_type t "
+            "JOIN pg_enum e ON t.oid = e.enumtypid "
+            "WHERE t.typname = 'paymentgateway' AND e.enumlabel = 'ROLLYPAY'"
+        )
+        exists = bind.execute(check_query).scalar()
+        if not exists:
+            with op.get_context().autocommit_block():
+                op.execute("ALTER TYPE paymentgateway ADD VALUE 'ROLLYPAY'")
     # ### end Alembic commands ###
 
 
