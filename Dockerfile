@@ -28,7 +28,7 @@ RUN mkdir -p /app/data /app/logs
 
 # Copy application source code
 COPY app/ /app/app/
-COPY alembic/ /app/alembic/
+COPY migrations/ /app/migrations/
 COPY alembic.ini /app/alembic.ini
 
 # Expose port for FastAPI
