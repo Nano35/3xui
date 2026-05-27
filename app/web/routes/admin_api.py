@@ -289,16 +289,17 @@ async def delete_subscription(sub_id: str, db: AsyncSession = Depends(get_db)):
     server = await db.get(Server, sub.server_id)
     inbound_id = sub.inbound_id
     client_uuid = sub.client_uuid
+    client_email = sub.client_email
     
     # Commit changes immediately to release database locks
     await db.commit()
     
     if server:
         try:
-            await delete_vpn_client(server, inbound_id, client_uuid)
-            logger.info(f"Deleted subscription client {client_uuid} from 3x-ui panel.")
+            await delete_vpn_client(server, inbound_id, client_uuid, client_email=client_email)
+            logger.info(f"Deleted subscription client {client_email} from 3x-ui panel.")
         except Exception as e:
-            logger.error(f"Failed to delete subscription client {client_uuid} from 3x-ui: {e}")
+            logger.error(f"Failed to delete subscription client {client_email} from 3x-ui: {e}")
             
     return {"success": True}
 
@@ -348,7 +349,8 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
         sub_details.append({
             "server_id": sub.server_id,
             "inbound_id": sub.inbound_id,
-            "client_uuid": sub.client_uuid
+            "client_uuid": sub.client_uuid,
+            "client_email": sub.client_email
         })
         
     await db.delete(user)
@@ -361,10 +363,10 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
         server = await db.get(Server, sd["server_id"])
         if server:
             try:
-                await delete_vpn_client(server, sd["inbound_id"], sd["client_uuid"])
-                logger.info(f"Deleted subscription client {sd['client_uuid']} from 3x-ui panel during user deletion.")
+                await delete_vpn_client(server, sd["inbound_id"], sd["client_uuid"], client_email=sd["client_email"])
+                logger.info(f"Deleted subscription client {sd['client_email']} from 3x-ui panel during user deletion.")
             except Exception as e:
-                logger.error(f"Failed to delete client {sd['client_uuid']} on server {server.name} during user deletion: {e}")
+                logger.error(f"Failed to delete client {sd['client_email']} on server {server.name} during user deletion: {e}")
                 
     return {"success": True}
 
