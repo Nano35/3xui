@@ -92,6 +92,15 @@ def generate_subscription_link(server: Server, sub_id: str) -> str:
     """
     Generates the 3x-ui subscription link for a given server and sub_id.
     """
+    if server.subscription_url_template:
+        template = server.subscription_url_template.strip()
+        if "{sub_id}" in template:
+            return template.format(sub_id=sub_id)
+        if template.endswith("/sub") or template.endswith("/sub/"):
+            return f"{template.rstrip('/')}/{sub_id}"
+        else:
+            return f"{template.rstrip('/')}/sub/{sub_id}"
+
     host_str = server.host
     if not (host_str.startswith("http://") or host_str.startswith("https://")):
         bp = server.base_path.strip("/") if server.base_path else ""

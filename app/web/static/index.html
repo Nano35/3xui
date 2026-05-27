@@ -887,6 +887,10 @@
                     <input type="text" id="server-base-path" value="/" placeholder="/secretpath/">
                 </div>
                 <div class="form-group">
+                    <label for="server-sub-template">Шаблон ссылки подписки (необязательно)</label>
+                    <input type="text" id="server-sub-template" placeholder="https://domain:2096/sub/{sub_id}">
+                </div>
+                <div class="form-group">
                     <label for="server-token">API Ключ (Bearer token) или Логин:Пароль</label>
                     <input type="text" id="server-token" required placeholder="Токен доступа или admin:password">
                 </div>
@@ -1212,6 +1216,7 @@
                 tableBody.innerHTML = '';
 
                 servers.forEach(s => {
+                    const subTemplateEsc = (s.subscription_url_template || '').replace(/'/g, "\\'");
                     tableBody.innerHTML += `
                         <tr>
                             <td>${s.id}</td>
@@ -1221,7 +1226,7 @@
                             <td><code>${s.base_path}</code></td>
                             <td><span class="badge ${s.is_enabled ? 'active' : 'expired'}">${s.status}</span></td>
                             <td>
-                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editServer(${s.id}, '${s.name}', '${s.host}', ${s.port}, '${s.base_path}', '${s.api_token}', ${s.is_enabled})">Ред.</button>
+                                <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editServer(${s.id}, '${s.name}', '${s.host}', ${s.port}, '${s.base_path}', '${s.api_token}', ${s.is_enabled}, '${subTemplateEsc}')">Ред.</button>
                                 <button class="btn-sec" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--accent-rose);" onclick="deleteServer(${s.id})">Удал.</button>
                             </td>
                         </tr>
@@ -1312,6 +1317,7 @@
             document.getElementById('server-host').value = '';
             document.getElementById('server-port').value = '443';
             document.getElementById('server-base-path').value = '/';
+            document.getElementById('server-sub-template').value = '';
             document.getElementById('server-token').value = '';
             document.getElementById('server-modal').style.display = 'flex';
         }
@@ -1320,13 +1326,14 @@
             document.getElementById('server-modal').style.display = 'none';
         }
 
-        function editServer(id, name, host, port, basePath, apiToken, isEnabled) {
+        function editServer(id, name, host, port, basePath, apiToken, isEnabled, subTemplate) {
             document.getElementById('server-modal-title').innerText = 'Редактировать VPN Сервер';
             document.getElementById('server-id').value = id;
             document.getElementById('server-name').value = name;
             document.getElementById('server-host').value = host;
             document.getElementById('server-port').value = port;
             document.getElementById('server-base-path').value = basePath;
+            document.getElementById('server-sub-template').value = subTemplate || '';
             document.getElementById('server-token').value = apiToken;
             document.getElementById('server-modal').style.display = 'flex';
         }
@@ -1339,6 +1346,7 @@
                 host: document.getElementById('server-host').value,
                 port: parseInt(document.getElementById('server-port').value),
                 base_path: document.getElementById('server-base-path').value,
+                subscription_url_template: document.getElementById('server-sub-template').value || null,
                 api_token: document.getElementById('server-token').value,
                 is_enabled: true
             };

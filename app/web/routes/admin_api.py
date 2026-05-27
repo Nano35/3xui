@@ -32,6 +32,7 @@ class ServerCreate(BaseModel):
     host: str
     port: int
     base_path: str = "/"
+    subscription_url_template: Optional[str] = None
     api_token: str
     is_enabled: bool = True
 
@@ -40,6 +41,7 @@ class ServerUpdate(BaseModel):
     host: str
     port: int
     base_path: str
+    subscription_url_template: Optional[str] = None
     api_token: str
     is_enabled: bool
 
@@ -143,6 +145,7 @@ async def create_server(data: ServerCreate, db: AsyncSession = Depends(get_db)):
         host=data.host,
         port=data.port,
         base_path=data.base_path,
+        subscription_url_template=data.subscription_url_template,
         api_token=data.api_token,
         is_enabled=data.is_enabled,
         status="UNKNOWN"
@@ -162,6 +165,7 @@ async def update_server(server_id: int, data: ServerUpdate, db: AsyncSession = D
     server.host = data.host
     server.port = data.port
     server.base_path = data.base_path
+    server.subscription_url_template = data.subscription_url_template
     server.api_token = data.api_token
     server.is_enabled = data.is_enabled
     

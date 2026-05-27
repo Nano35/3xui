@@ -65,6 +65,7 @@ class Server(Base):
     host = Column(String, nullable=False)
     port = Column(Integer, nullable=False)
     base_path = Column(String, default="/")
+    subscription_url_template = Column(String, nullable=True)  # custom sub URL format, e.g. https://domain:port/sub/{sub_id}
     api_token = Column(String, nullable=False)  # 3x-ui auth token
     is_enabled = Column(Boolean, default=True)
     status = Column(String, default="UNKNOWN")  # ONLINE, OFFLINE, UNKNOWN
