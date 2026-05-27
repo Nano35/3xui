@@ -240,6 +240,7 @@ async def create_vpn_client(
 
     async with get_client_for_server(server) as client:
         # Fetch all active inbounds on this server to bind to
+        inbounds = []
         try:
             inbounds = await client.get_inbounds()
             active_inbound_ids = [ib["id"] for ib in inbounds if ib.get("enable", True)]
@@ -267,17 +268,41 @@ async def create_vpn_client(
                 sub_id=sub_id
             )
         else:
-            await client.add_client(
-                inbound_ids=active_inbound_ids,
-                email=email,
-                client_uuid=uuid_str,
-                limit_ip=limit_ip,
-                total_gb=traffic_limit_bytes,
-                expiry_time=expiry_time_ms,
-                flow=flow,
-                tg_id=tg_id,
-                sub_id=sub_id
-            )
+            try:
+                await client.add_client(
+                    inbound_ids=active_inbound_ids,
+                    email=email,
+                    client_uuid=uuid_str,
+                    limit_ip=limit_ip,
+                    total_gb=traffic_limit_bytes,
+                    expiry_time=expiry_time_ms,
+                    flow=flow,
+                    tg_id=tg_id,
+                    sub_id=sub_id
+                )
+            except Exception as e:
+                logger.warning(f"Failed to add client to all active inbounds ({active_inbound_ids}) on server {server.name}: {e}. Retrying with local inbounds only.")
+                local_inbound_ids = [
+                    ib["id"] for ib in inbounds 
+                    if ib.get("enable", True) and (ib.get("nodeId") is None or ib.get("nodeId") == 0)
+                ]
+                if not local_inbound_ids:
+                    local_inbound_ids = [inbound_id]
+                
+                if local_inbound_ids != active_inbound_ids:
+                    await client.add_client(
+                        inbound_ids=local_inbound_ids,
+                        email=email,
+                        client_uuid=uuid_str,
+                        limit_ip=limit_ip,
+                        total_gb=traffic_limit_bytes,
+                        expiry_time=expiry_time_ms,
+                        flow=flow,
+                        tg_id=tg_id,
+                        sub_id=sub_id
+                    )
+                else:
+                    raise e
             
     return generate_subscription_link(server, sub_id or uuid_str)
 
